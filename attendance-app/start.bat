@@ -14,12 +14,21 @@ if not exist node_modules (
     pause
     exit /b 1
 )
+
+if not exist .next (
+    echo [X] Production build not found.
+    echo     Run setup.bat first.
+    pause
+    exit /b 1
+)
+
 if not exist python-service\venv (
     echo [X] python-service\venv not found.
     echo     Run setup.bat first.
     pause
     exit /b 1
 )
+
 if not exist .env (
     echo [X] .env not found.
     echo     Run setup.bat first, then edit .env.
@@ -30,15 +39,14 @@ if not exist .env (
 REM ---------- 1. Python face service ----------
 echo [1/2] Starting Python face service on port 8000...
 start "Attendance - Face Service" cmd /k ^
-    "cd /d "%~dp0python-service" && call venv\Scripts\activate.bat && uvicorn main:app --port 8000 --reload"
+    "cd /d "%~dp0python-service" && call venv\Scripts\activate.bat && uvicorn main:app --port 8000"
 
-REM Give uvicorn a moment to bind
 timeout /t 3 /nobreak >nul
 
-REM ---------- 2. Next.js app ----------
-echo [2/2] Starting Next.js app on port 3000...
+REM ---------- 2. Next.js production app ----------
+echo [2/2] Starting Next.js production app on port 3000...
 start "Attendance - Web App" cmd /k ^
-    "cd /d "%~dp0" && npm run dev"
+    "cd /d "%~dp0" && npm run start"
 
 timeout /t 4 /nobreak >nul
 

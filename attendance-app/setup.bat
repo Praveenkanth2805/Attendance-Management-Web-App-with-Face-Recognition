@@ -66,7 +66,7 @@ if errorlevel 1 (
 echo.
 
 REM ---------- 4. .env ----------
-echo [2/5] Preparing .env...
+echo [2/6] Preparing .env...
 if exist .env (
     echo      .env already exists - leaving it untouched.
 ) else (
@@ -83,7 +83,7 @@ if exist .env (
 echo.
 
 REM ---------- 5. Prisma ----------
-echo [3/5] Setting up database...
+echo [3/6] Setting up database...
 call npm run db:push
 if errorlevel 1 ( echo [X] db:push failed. & pause & exit /b 1 )
 call npm run db:generate
@@ -92,8 +92,19 @@ call npm run db:seed
 if errorlevel 1 ( echo [!] db:seed failed - continuing anyway. )
 echo.
 
-REM ---------- 6. Python venv ----------
-echo [4/5] Creating Python virtual environment...
+REM ---------- 6. Next.js production build ----------
+echo [4/6] Building Next.js application...
+call npm run build
+if errorlevel 1 (
+    echo [X] Next.js build failed.
+    pause
+    exit /b 1
+)
+echo [OK] Next.js production build completed.
+echo.
+
+REM ---------- 7. Python venv ----------
+echo [5/6] Creating Python virtual environment...
 cd python-service
 if exist venv (
     echo      venv already exists - skipping creation.
@@ -116,8 +127,8 @@ if errorlevel 1 (
 )
 echo.
 
-REM ---------- 7. Python deps ----------
-echo [5/5] Installing Python dependencies...
+REM ---------- 8. Python deps ----------
+echo [6/6] Installing Python dependencies...
 echo      dlib compiles from source - this can take 5-15 minutes.
 echo.
 pip install --upgrade pip wheel
