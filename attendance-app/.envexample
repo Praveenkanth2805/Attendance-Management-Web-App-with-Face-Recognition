@@ -6,4 +6,4 @@ ADMIN_PASSWORD="admin123"
 SESSION_SECRET="replace-with-a-long-random-32-char-string"
 
 # Shown in the admin nav bar
-NEXT_PUBLIC_SCHOOL_NAME="Your College Name"
+NEXT_PUBLIC_SCHOOL_NAME="Annamalaiyar Institution Of Technology"

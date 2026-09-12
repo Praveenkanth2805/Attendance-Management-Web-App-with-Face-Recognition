@@ -5,7 +5,7 @@ import Spinner from "@/components/Spinner";
 import Modal from "@/components/Modal";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { useToast } from "@/components/Toast";
-import { IconPlus, IconTrash } from "@/components/icons";
+import { IconPlus, IconTrash, IconEdit } from "@/components/icons";
 
 type ClassRow = {
   id: number;
@@ -20,10 +20,12 @@ export default function ClassesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [addOpen, setAddOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [addError, setAddError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
+  // Modal state — shared for add & edit
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editing, setEditing] = useState<ClassRow | null>(null); // null → add mode
+  const [name, setName] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<ClassRow | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -32,8 +34,6 @@ export default function ClassesPage() {
     setLoading(true);
     setError(null);
     try {
-      // Uses /api/classes (already returns all classes)
-      // Fetch students in parallel to compute per-class counts
       const [cRes, sRes] = await Promise.all([
         fetch("/api/classes", { cache: "no-store" }),
         fetch("/api/students", { cache: "no-store" }),
@@ -63,41 +63,73 @@ export default function ClassesPage() {
     load();
   }, [load]);
 
-  async function add() {
-    const trimmed = newName.trim();
+  function openAdd() {
+    setEditing(null);
+    setName("");
+    setFormError(null);
+    setModalOpen(true);
+  }
+
+  function openEdit(c: ClassRow) {
+    setEditing(c);
+    setName(c.name);
+    setFormError(null);
+    setModalOpen(true);
+  }
+
+  async function save() {
+    if (saving) return;
+    const trimmed = name.trim();
     if (!trimmed) {
-      setAddError("Class name is required.");
+      setFormError("Class name is required.");
       return;
     }
     if (trimmed.length > 40) {
-      setAddError("Class name must be at most 40 characters.");
+      setFormError("Class name must be at most 40 characters.");
       return;
     }
-    setAdding(true);
-    setAddError(null);
+
+    setSaving(true);
+    setFormError(null);
+
+    const isEdit = !!editing;
+    const url = isEdit ? `/api/classes/${editing!.id}` : "/api/classes";
+    const method = isEdit ? "PUT" : "POST";
+
     try {
-      const r = await fetch("/api/classes", {
-        method: "POST",
+      const r = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: trimmed }),
       });
       const data = await r.json().catch(() => ({}));
       if (!r.ok) {
-        setAddError(data.error ?? "Unable to add class.");
+        setFormError(data.error ?? `Unable to ${isEdit ? "update" : "add"} class.`);
         return;
       }
-      setClasses((prev) =>
-        [...prev, { ...data, _count: { students: 0 } }].sort((a, b) =>
-          a.name.localeCompare(b.name)
-        )
-      );
-      setNewName("");
-      setAddOpen(false);
-      show("Class added.", "success");
+
+      if (isEdit) {
+        setClasses((prev) =>
+          prev
+            .map((c) => (c.id === editing!.id ? { ...c, name: data.name } : c))
+            .sort((a, b) => a.name.localeCompare(b.name))
+        );
+        show("Class updated.", "success");
+      } else {
+        setClasses((prev) =>
+          [...prev, { ...data, _count: { students: 0 } }].sort((a, b) =>
+            a.name.localeCompare(b.name)
+          )
+        );
+        show("Class added.", "success");
+      }
+      setModalOpen(false);
+      setEditing(null);
+      setName("");
     } catch {
-      setAddError("Unable to add class. Try again.");
+      setFormError(`Unable to ${isEdit ? "update" : "add"} class. Try again.`);
     } finally {
-      setAdding(false);
+      setSaving(false);
     }
   }
 
@@ -121,16 +153,18 @@ export default function ClassesPage() {
     }
   }
 
+  const isEdit = !!editing;
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Classes</h1>
           <p className="text-sm text-slate-500">
-            Add or remove classes available in the student form.
+            Add, rename, or remove classes available in the student form.
           </p>
         </div>
-        <Button onClick={() => { setNewName(""); setAddError(null); setAddOpen(true); }}>
+        <Button onClick={openAdd}>
           <IconPlus className="h-4 w-4" />
           Add Class
         </Button>
@@ -152,11 +186,9 @@ export default function ClassesPage() {
       {!loading && !error && classes.length === 0 && (
         <div className="rounded-2xl border border-dashed border-brand-300 bg-white p-10 text-center">
           <p className="text-slate-700 font-medium">No classes yet</p>
-          <p className="text-sm text-slate-500 mt-1">
-            Add your first class to get started.
-          </p>
+          <p className="text-sm text-slate-500 mt-1">Add your first class to get started.</p>
           <div className="mt-4">
-            <Button onClick={() => setAddOpen(true)}>
+            <Button onClick={openAdd}>
               <IconPlus className="h-4 w-4" />
               Add Class
             </Button>
@@ -168,7 +200,7 @@ export default function ClassesPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {classes.map((c) => {
             const count = c._count?.students ?? 0;
-            const disabled = count > 0;
+            const deleteDisabled = count > 0;
             return (
               <div
                 key={c.id}
@@ -180,16 +212,27 @@ export default function ClassesPage() {
                     {count} student{count === 1 ? "" : "s"}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setDeleteTarget(c)}
-                  disabled={disabled}
-                  title={disabled ? "Remove students from this class first" : "Delete class"}
-                  className="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
-                  aria-label={`Delete ${c.name}`}
-                >
-                  <IconTrash className="h-4 w-4" />
-                </button>
+                <div className="flex items-center gap-0.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => openEdit(c)}
+                    title="Edit class"
+                    className="p-2 rounded-lg text-slate-400 hover:bg-brand-50 hover:text-brand-700 transition"
+                    aria-label={`Edit ${c.name}`}
+                  >
+                    <IconEdit className="h-4 w-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDeleteTarget(c)}
+                    disabled={deleteDisabled}
+                    title={deleteDisabled ? "Remove students from this class first" : "Delete class"}
+                    className="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-slate-400"
+                    aria-label={`Delete ${c.name}`}
+                  >
+                    <IconTrash className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -197,16 +240,16 @@ export default function ClassesPage() {
       )}
 
       <Modal
-        open={addOpen}
-        onClose={adding ? () => {} : () => setAddOpen(false)}
-        title="Add Class"
+        open={modalOpen}
+        onClose={saving ? () => {} : () => setModalOpen(false)}
+        title={isEdit ? "Edit Class" : "Add Class"}
         footer={
           <>
-            <Button variant="secondary" onClick={() => setAddOpen(false)} disabled={adding}>
+            <Button variant="secondary" onClick={() => setModalOpen(false)} disabled={saving}>
               Cancel
             </Button>
-            <Button onClick={add} loading={adding} loadingText="Adding...">
-              Add Class
+            <Button onClick={save} loading={saving} loadingText={isEdit ? "Saving..." : "Adding..."}>
+              {isEdit ? "Save Changes" : "Add Class"}
             </Button>
           </>
         }
@@ -215,18 +258,18 @@ export default function ClassesPage() {
         <input
           autoFocus
           className={`w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 outline-none ${
-            addError
+            formError
               ? "border-red-400 focus:border-red-500 focus:ring-red-100"
               : "border-slate-300 focus:border-brand-500 focus:ring-brand-100"
           }`}
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           placeholder="e.g. CSE-A"
           maxLength={40}
-          disabled={adding}
-          onKeyDown={(e) => e.key === "Enter" && add()}
+          disabled={saving}
+          onKeyDown={(e) => e.key === "Enter" && save()}
         />
-        {addError && <p className="mt-1 text-xs text-red-600">{addError}</p>}
+        {formError && <p className="mt-1 text-xs text-red-600">{formError}</p>}
       </Modal>
 
       <ConfirmDialog
