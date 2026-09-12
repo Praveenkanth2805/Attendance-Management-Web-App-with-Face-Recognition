@@ -105,10 +105,10 @@ function LoginContent() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center text-xs text-slate-400">
+        {/* <p className="mt-6 text-center text-xs text-slate-400">
           Default credentials are set in{" "}
           <code className="bg-slate-100 px-1 rounded">.env</code>
-        </p>
+        </p> */}
       </div>
     </div>
   );
