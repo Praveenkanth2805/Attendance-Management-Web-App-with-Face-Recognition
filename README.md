@@ -74,11 +74,12 @@ Two user surfaces:
 
 ### 📚 Class & Year Management (`/admin/classes`, `/admin/years`)
 - Card-grid view with student counts
-- Add / delete with duplicate prevention
+- **Add, rename, or delete** — including seeded data
+- Duplicate prevention (UI + DB `UNIQUE` constraint)
 - Cannot delete a class/year that has students assigned
 
 ### 🎥 Attendance Page (`/attendance`)
-- **Public, no login**
+- **Public, no login required**
 - Live webcam with auto-recognition every **2.5 seconds**
 - Automatic attendance marking on face match
 - **Duplicate prevention** — same student cannot be marked twice per day
@@ -125,6 +126,8 @@ pyenv install 3.11.10
 source venv/bin/activate
 pip install -r requirements.txt
 ```
+
+> 🪟 **Windows users:** just double-click `setup.bat` and `start.bat`.
 
 ### Run (every day)
 
@@ -199,15 +202,11 @@ npm run dev
 
 📍 Villupuram, Tamil Nadu, India
 
-[![GitHub](https://img.shields.io/badge/GitHub-<your--username>-181717?logo=github&logoColor=white)](https://github.com/<your-username>)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-<your--profile>-0A66C2?logo=linkedin&logoColor=white)](https://linkedin.com/in/<your-profile>)
-[![Instagram](https://img.shields.io/badge/Instagram-@<your--handle>-E4405F?logo=instagram&logoColor=white)](https://instagram.com/<your-handle>)
-[![Email](https://img.shields.io/badge/Email-<your.email@example.com>-D14836?logo=gmail&logoColor=white)](mailto:<your.email@example.com>)
+[![GitHub](https://img.shields.io/badge/GitHub-Praveenkanth2805-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Praveenkanth2805)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-praveenkanth2805-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://in.linkedin.com/in/praveenkanth2805)
+[![Instagram](https://img.shields.io/badge/Instagram-@praveenkanth2805-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://www.instagram.com/praveenkanth2805/)
 
 </div>
-
-> ✏️ Replace `<your-username>`, `<your-profile>`, `<your-handle>`, and
-> `<your.email@example.com>` before publishing.
 
 ---
 

@@ -152,10 +152,10 @@ brew install openssl readline sqlite3 xz zlib tcl-tk
 # 2) Install pyenv
 curl https://pyenv.run | bash
 
-# 3) Add pyenv to your shell
+# 3) Add pyenv to your shell (matches modern pyenv installer output)
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-echo 'eval "$(pyenv init -)"' >> ~/.bashrc
+echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+echo 'eval "$(pyenv init - bash)"' >> ~/.bashrc
 
 # 4) Reload shell
 exec "$SHELL"
@@ -182,7 +182,8 @@ cd python-service
 
 # Activate
 source venv/bin/activate          # macOS / Linux
-# .venv\Scripts\activate           # Windows PowerShell
+# venv\Scripts\activate            # Windows PowerShell
+# venv\Scripts\activate.bat        # Windows CMD
 
 # Verify
 python --version
