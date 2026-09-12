@@ -1,0 +1,17 @@
+# --- Database ---
+DATABASE_URL="file:./dev.db"
+
+# --- Python face service ---
+FACE_SERVICE_URL="http://127.0.0.1:8000"
+
+# --- Admin credentials (CHANGE THESE) ---
+ADMIN_USERNAME="admin"
+ADMIN_PASSWORD="admin123"
+
+# --- Session signing secret (MUST be >= 16 chars) ---
+# Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+SESSION_SECRET="replace-with-a-long-random-string"
+
+
+# Shown in the admin nav bar
+NEXT_PUBLIC_SCHOOL_NAME="Annamalaiyar Institution Of Technology"
