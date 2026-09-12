@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+
+model Class {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  students Student[]
+  @@map("classes")
+}
+
+model Year {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  students Student[]
+  @@map("years")
+}
+
+model Student {
+  registerNumber String       @id @map("register_number")
+  name           String
+  gender         String
+  classId        Int          @map("class_id")
+  yearId         Int          @map("year_id")
+  faceEncoding   String?      @map("face_encoding")
+  class          Class        @relation(fields: [classId], references: [id])
+  year           Year         @relation(fields: [yearId], references: [id])
+  attendances    Attendance[]
+  @@map("students")
+}
+
+model Attendance {
+  id             Int     @id @default(autoincrement())
+  registerNumber String  @map("register_number")
+  date           String
+  checkInTime    String  @map("check_in_time")
+  student        Student @relation(fields: [registerNumber], references: [registerNumber], onDelete: Cascade)
+  @@unique([registerNumber, date])
+  @@map("attendance")
+}
