@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { validateLabel } from "@/lib/validation";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const years = await prisma.year.findMany({ orderBy: { name: "asc" } });

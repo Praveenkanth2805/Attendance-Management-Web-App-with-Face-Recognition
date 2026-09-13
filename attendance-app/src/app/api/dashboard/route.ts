@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { todayKey } from "@/lib/date";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const date = todayKey();
