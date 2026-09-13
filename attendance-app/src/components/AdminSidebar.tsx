@@ -7,6 +7,7 @@ import {
   IconUsers,
   IconBook,
   IconCalendar,
+  IconClipboardCheck,
   IconClose,
 } from "./icons";
 
@@ -18,6 +19,7 @@ type NavItem = {
 
 const links: NavItem[] = [
   { href: "/admin", label: "Dashboard", Icon: IconDashboard },
+  { href: "/admin/attendance", label: "Attendance", Icon: IconClipboardCheck },
   { href: "/admin/students", label: "Students", Icon: IconUsers },
   { href: "/admin/classes", label: "Classes", Icon: IconBook },
   { href: "/admin/years", label: "Years", Icon: IconCalendar },
